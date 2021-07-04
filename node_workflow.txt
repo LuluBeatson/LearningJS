@@ -1,0 +1,20 @@
+1. Go to Node.js on the web and install the package
+2. In the terminal at ~:
+	mkdir ~/.npm-global
+	npm config set prefix '~/.npm-global'
+	code ~/.zshrc
+3. In VS code, add the lines and save:
+	export PATH=$HOME/bin:/usr/local/bin:$PATH
+	export PATH=~/.npm-global/bin:$PATH
+4. Back in the terminal, refresh it by:
+	source ~/.zshrc
+5. Now install the necessary packages with npm just like pip:
+	npm install http-server -g
+	npm install -g p5-manager
+6. cd into your preferred working directory and create a sketch:
+	p5 generate --bundle "mysketch"
+7. cd into your sketch folder and start a server:
+	http-server
+8. Paste the address into the browser. In developer tool settings > Network > disable cache while developer tools are open
+9. To edit the sketch, open a new tab (cmd+t). You can set this to default to the same directory in preferences. Then open VS code:
+	code .
