@@ -4,10 +4,10 @@ class Boid {
         this.velocity = p5.Vector.random2D();
         this.velocity.setMag(random(2, 4));
         this.acceleration = createVector();
-        this.maxAcceleration = 100;
+        // this.maxAcceleration = 100;
         this.mouseForce = 1;
-        this.maxForce = 0.5;
-        this.maxSpeed = 2;
+        this.maxForce = 1;
+        this.maxSpeed = 4;
         this.perceptionRadius = 50;
     }
 
@@ -18,11 +18,22 @@ class Boid {
         } else if (this.position.x < 0) {
             this.position.x = width + this.position.x;
         }
+
         if (this.position.y > height) {
             this.position.y = this.position.y - height;
         } else if (this.position.y < 0) {
             this.position.y = height + this.position.y;
         }
+        // if (this.position.x > width) {
+        //     this.position.x = 0;
+        //   } else if (this.position.x < 0) {
+        //     this.position.x = width;
+        //   }
+        //   if (this.position.y > height) {
+        //     this.position.y = 0;
+        //   } else if (this.position.y < 0) {
+        //     this.position.y = height;
+        //   }
     }
 
     flock(boids) {
@@ -90,7 +101,7 @@ class Boid {
         if (mouseX > 0 && mouseX < width && mouseY > 0 && mouseY < height && d < this.perceptionRadius) {
             attractForce.add(this.position);
             attractForce.sub(mousePosition);
-            attractForce.setMag(this.mouseForce);
+            attractForce.limit(this.maxForce);
         }
         return attractForce
     }
@@ -127,12 +138,14 @@ class Boid {
 
         attractForce.mult(mouseAttractionSlider.value());
 
-        // this.acceleration.sub(attractForce);
+        this.acceleration.sub(attractForce);
         // this.acceleration.limit(this.maxAcceleration);
-        this.velocity.sub(attractForce);
+        // this.velocity.sub(attractForce);
+        this.position.add(this.velocity);
         this.velocity.add(this.acceleration);
         this.velocity.limit(this.maxSpeed);
-        this.position.add(this.velocity);
+        this.acceleration.mult(0);
+        
     }
 
     show() {
@@ -141,4 +154,59 @@ class Boid {
         point(this.position.x, this.position.y);
     }
 
+}
+
+class Predator {
+    constructor() {
+        this.position = createVector(random(width), random(height));
+        this.velocity = p5.Vector.random2D();
+        this.velocity.setMag(random(2, 4));
+        this.acceleration = createVector();
+        this.maxForce = 1;
+        this.maxSpeed = 4;
+        this.perceptionRadius = 50;
+        
+        this.energy = 500;
+    }
+
+    // wrap the world on a torus
+    edges() {
+        if (this.position.x > width) {
+            this.position.x = this.position.x - width;
+        } else if (this.position.x < 0) {
+            this.position.x = width + this.position.x;
+        }
+
+        if (this.position.y > height) {
+            this.position.y = this.position.y - height;
+        } else if (this.position.y < 0) {
+            this.position.y = height + this.position.y;
+        }
+        // if (this.position.x > width) {
+        //     this.position.x = 0;
+        //   } else if (this.position.x < 0) {
+        //     this.position.x = width;
+        //   }
+        //   if (this.position.y > height) {
+        //     this.position.y = 0;
+        //   } else if (this.position.y < 0) {
+        //     this.position.y = height;
+        //   }
+    }
+    
+    hunt(boids) {
+        let steering = createVector();
+    }
+
+    update() {
+        if (this.energy > 0) {
+
+        }
+    }
+
+    show() {
+        strokeWeight(8);
+        stroke(255, 100, 100);
+        point(this.position.x, this. position.y);
+    }
 }

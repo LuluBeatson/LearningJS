@@ -1,4 +1,7 @@
-const flock = [];
+const numBoids = 100
+const numPredators = 5
+const flock = []; // boids
+const pack = []; // predators
 let alignSlider, cohesionSlider, separationSlider;
 let stop = true;
 
@@ -14,8 +17,12 @@ function setup() {
 	mouseAttractionSlider = createSlider(0, 2, 1, 0.1);
 	mouseAttractionSlider.position(620, 110);
 
-	for (let i = 0; i < 100; i++) {
+	for (let i = 0; i < numBoids; i++) {
 		flock.push(new Boid)
+	}
+
+	for (let i = 0; i < numPredators; i++) {
+		pack.push(new Predator)
 	}
 
 	// Pause by clicking anywhere in the canvas
@@ -38,5 +45,10 @@ function draw() {
 		boid.flock(flock);
 		boid.update();
 		boid.show();
+	}
+
+	for (let predator of pack) {
+		predator.edges();
+		predator.show();
 	}
 }
