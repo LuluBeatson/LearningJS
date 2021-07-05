@@ -1,6 +1,10 @@
 class Boid {
     constructor() {
-        this.position = createVector(random(width), random(height));
+        if (keyIsDown(66)) {
+            this.position = createVector(mouseX, mouseY);
+        } else {
+            this.position = createVector(random(width), random(height));
+        }
         this.velocity = p5.Vector.random2D();
         this.velocity.setMag(random(2, 4));
         this.acceleration = createVector();
@@ -9,6 +13,8 @@ class Boid {
         this.maxForce = 1;
         this.maxSpeed = 4;
         this.perceptionRadius = 50;
+        this.eatRadius = 2;
+        this.energy = 500;
     }
 
     // wrap the world on a torus
@@ -45,7 +51,8 @@ class Boid {
 
         alignment.mult(alignSlider.value());
         cohesion.mult(cohesionSlider.value());
-        separation.mult(separationSlider.value());
+        // separation.mult(separationSlider.value());
+        separation.mult(1.3); // difficult to tune but this value works well
 
         this.acceleration.add(alignment);
         this.acceleration.add(cohesion);
@@ -74,7 +81,6 @@ class Boid {
 
     // Head towards the average position of its neighbours
     cohesion(boids) {
-        let perceptionRadius = 100;
         let steering = createVector();
         let numNeighbors = 0;
         for (let other of boids) {
@@ -106,7 +112,7 @@ class Boid {
         return attractForce
     }
 
-    //
+    // Don't crash into other boids
     separation(boids) {
         let steering = createVector();
         let total = 0;
@@ -132,19 +138,83 @@ class Boid {
         }
         return steering;
     }
+
+    // Fear the predators (based on separation)
+    flee(pack) {
+        let steering = createVector();
+        let numPredators = 0;
+        for (let other of pack) {
+          let d = dist(
+            this.position.x,
+            this.position.y,
+            other.position.x,
+            other.position.y
+          );
+          if (d < this.perceptionRadius) {
+            let diff = p5.Vector.sub(this.position, other.position);
+            diff.div(d);
+            steering.add(diff);
+            numPredators++;
+          }
+        }
+        if (numPredators > 0) {
+          steering.div(numPredators);
+          steering.setMag(this.maxSpeed);
+          steering.sub(this.velocity);
+          steering.limit(this.maxForce);
+        }
+        this.acceleration.add(steering)
+    }
+
+    // steer towards the nearest boid
+    scavenge(food) {
+        let steering = createVector();
+        let numFood = 0;
+        for (let bit of food) {
+            let d = dist(this.position.x, this.position.y, bit.position.x, bit.position.y);
+            if (d < this.perceptionRadius) {
+                steering.add(bit.position);
+                numFood ++;
+            }
+        }
+        if (numFood > 0) {
+            steering.div(numFood); // average location
+            steering.sub(this.position) // direction towards average location of nearby prey
+            steering.sub(this.velocity);
+            steering.limit(this.maxForce);
+        }
+        this.acceleration.add(steering)
+    }
+
+    // remove boids that the predator is near enough
+    eat(food) {
+        for (let bit of food) {
+            let d = dist(this.position.x, this.position.y, bit.position.x, bit.position.y);
+            if (d < this.eatRadius) {
+                food.pop(bit);
+                this.energy += bit.nutrients;
+                console.log("Bits of food eaten by boids");
+            }
+        }
+    }
     
-    update() {
-        let attractForce = this.attract();
+    update(flock) {
+        if (this.energy > 0) {
+            let attractForce = this.attract();
+            attractForce.mult(mouseAttractionSlider.value());
+            this.acceleration.sub(attractForce);
+            // this.acceleration.limit(this.maxAcceleration);
+            // this.velocity.sub(attractForce);
+            this.position.add(this.velocity);
+            this.velocity.add(this.acceleration);
+            this.velocity.limit(this.maxSpeed);
+            this.acceleration.mult(0);
 
-        attractForce.mult(mouseAttractionSlider.value());
-
-        this.acceleration.sub(attractForce);
-        // this.acceleration.limit(this.maxAcceleration);
-        // this.velocity.sub(attractForce);
-        this.position.add(this.velocity);
-        this.velocity.add(this.acceleration);
-        this.velocity.limit(this.maxSpeed);
-        this.acceleration.mult(0);
+            // this.energy -= 1;
+        } else {
+            flock.pop(this)
+            console.log("Boids died of hunger!")
+        }
         
     }
 
@@ -156,57 +226,4 @@ class Boid {
 
 }
 
-class Predator {
-    constructor() {
-        this.position = createVector(random(width), random(height));
-        this.velocity = p5.Vector.random2D();
-        this.velocity.setMag(random(2, 4));
-        this.acceleration = createVector();
-        this.maxForce = 1;
-        this.maxSpeed = 4;
-        this.perceptionRadius = 50;
-        
-        this.energy = 500;
-    }
 
-    // wrap the world on a torus
-    edges() {
-        if (this.position.x > width) {
-            this.position.x = this.position.x - width;
-        } else if (this.position.x < 0) {
-            this.position.x = width + this.position.x;
-        }
-
-        if (this.position.y > height) {
-            this.position.y = this.position.y - height;
-        } else if (this.position.y < 0) {
-            this.position.y = height + this.position.y;
-        }
-        // if (this.position.x > width) {
-        //     this.position.x = 0;
-        //   } else if (this.position.x < 0) {
-        //     this.position.x = width;
-        //   }
-        //   if (this.position.y > height) {
-        //     this.position.y = 0;
-        //   } else if (this.position.y < 0) {
-        //     this.position.y = height;
-        //   }
-    }
-    
-    hunt(boids) {
-        let steering = createVector();
-    }
-
-    update() {
-        if (this.energy > 0) {
-
-        }
-    }
-
-    show() {
-        strokeWeight(8);
-        stroke(255, 100, 100);
-        point(this.position.x, this. position.y);
-    }
-}
