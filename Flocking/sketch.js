@@ -17,7 +17,7 @@ function setup() {
 	cohesionSlider.position(20, 50);
 	separationSlider = createSlider(0, 2, 1, 0.1);
 	separationSlider.position(20, 80);
-	mouseAttractionSlider = createSlider(0, 2, 1, 0.1);
+	mouseAttractionSlider = createSlider(-1, 1, 0, 0.1);
 	mouseAttractionSlider.position(20, 110);
 
 	// create a flock of boids
